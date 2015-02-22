@@ -2,9 +2,9 @@
 
 .. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
 """
-import json
+from json import load
+from networkx import DiGraph
 from operator import itemgetter
-import networkx as nx
 from re import split
 
 
@@ -14,7 +14,8 @@ NUM_ROUNDS = 50
 def choose_seeds(graph, num_players, num_seeds):
     """Return one flat tuple of the seed nodes for each round
 
-    If num_seeds is 2 and NUM_ROUNDS is 2, the seed list will look like:
+    If num_seeds is 2 and NUM_ROUNDS is 2, the seed list will look like this:
+
     ['Seed1ForRound1', 'Seed2ForRound1', 'Seed1ForRound2', 'Seed2ForRound2']
 
     :param graph: NetworkX Graph
@@ -36,23 +37,23 @@ def read_graph(graph_path):
     :rtype: tuple
     """
     with open(graph_path) as graph_file:
-        graph_data = json.load(graph_file)
-    graph = nx.Graph(graph_data)
+        graph_data = load(graph_file)
+    graph = DiGraph(graph_data)
     graph_metadata = split('/|\.', graph_path)
     num_players = int(graph_metadata[1])
     num_seeds = int(graph_metadata[2])
     return graph, num_players, num_seeds
 
 
-def write_seeds(seeds):
-    """Write the names of the seed nodes
+def write_seeds(graph_path, seeds):
+    """Write the output file of seed node names
 
+    :param str graph_path: path to graph file
     :param tuple seeds: names of seed nodes
     """
-    i = 0
-    while i < len(seeds):
-        print(seeds[i:i + 5])
-        i += 5
+    seeds_path = graph_path.replace('graphs', 'seeds').replace('json', 'seeds.txt')
+    with open(seeds_path, 'w') as seeds_file:
+        seeds_file.writelines(seed + '\n' for seed in seeds)
 
 
 def run(graph_path):
@@ -72,4 +73,4 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('graph_path', metavar='G', help='path to graph file')
     args = parser.parse_args()
-    write_seeds(run(args.graph_path))
+    write_seeds(args.graph_path, run(args.graph_path))
