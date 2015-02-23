@@ -3,7 +3,8 @@
 .. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
 """
 from json import load
-from networkx import DiGraph
+# from networkx import Graph
+import networkx as nx
 from operator import itemgetter
 from re import split
 
@@ -24,6 +25,18 @@ def choose_seeds(graph, num_players, num_seeds):
     :return: names of seed nodes
     :rtype: tuple
     """
+    nodes = graph.nodes()
+    num_nodes = len(nodes)
+    scored_nodes = {}
+
+    for node in nodes:
+        scored_nodes[node] = []
+
+    # First get the importance in degree centrality.
+    for node in nodes:
+        scored_nodes[node].append(float(len(list(nx.all_neighbors(graph, node))))
+                                  / float(num_nodes - 1))
+
     sorted_degree_nodes = [node for node, _ in sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)]
     highest_degree_nodes = sorted_degree_nodes[:num_seeds] * NUM_ROUNDS
     return tuple(highest_degree_nodes)
@@ -38,7 +51,7 @@ def read_graph(graph_path):
     """
     with open(graph_path) as graph_file:
         graph_data = load(graph_file)
-    graph = DiGraph(graph_data)
+    graph = nx.Graph(graph_data)
     graph_metadata = split('/|\.', graph_path)
     num_players = int(graph_metadata[1])
     num_seeds = int(graph_metadata[2])
