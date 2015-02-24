@@ -3,7 +3,6 @@
 .. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
 """
 from json import load
-# from networkx import Graph
 import networkx as nx
 from operator import itemgetter
 from re import split
@@ -89,7 +88,6 @@ def choose_seeds(graph, num_players, num_seeds):
                     if key not in paths:
                         paths[key] = list(nx.all_shortest_paths(graph, j, k))
 
-                    # TODO check that this works
                     paths_with_i = 0
                     for path in paths[key]:
                         if i in path:
@@ -99,11 +97,15 @@ def choose_seeds(graph, num_players, num_seeds):
 
             scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
+    for node, centralities in scored_nodes.iteritems():
+        scored_nodes[node] = sum(centralities) / len(centralities)
 
+    sorted_centrality_nodes = [node for node, _ in sorted(scored_nodes.items(),
+                                                          key=itemgetter(1),
+                                                          reverse=True)]
 
-    sorted_degree_nodes = [node for node, _ in sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)]
-    highest_degree_nodes = sorted_degree_nodes[:num_seeds] * NUM_ROUNDS
-    return tuple(highest_degree_nodes)
+    centralest_nodes = sorted_centrality_nodes[:num_seeds] * NUM_ROUNDS
+    return tuple(centralest_nodes)
 
 
 def read_graph(graph_path):
