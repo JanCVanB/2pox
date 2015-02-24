@@ -43,17 +43,25 @@ def choose_seeds(graph, num_players, num_seeds):
         scored_nodes[node].append(float(num_neighors)
                                   / float(num_nodes - 1))
 
-    if num_nodes < 500:
+    if num_nodes <= 500:
         # Get the importance in closeness centrality.
+        paths = {}
         for node in scored_nodes:
+            inode = int(node)
             sum_of_distances = 0
 
             for other_node in scored_nodes:
                 try:
-                    sum_of_distances += len(nx.shortest_path(graph,
-                                                             source=node,
-                                                             target=other_node))\
-                                        - 1
+                    key = str(tuple(sorted(inode, int(other_node))))
+                    if key in paths:
+                        sum_of_distances += paths[key]
+                    else:
+                        path_length = len(
+                            nx.shortest_path(graph, source=node, target=other_node))\
+                            - 1
+                        paths[key] = path_length
+                        sum_of_distances += path_length
+
                 except nx.NetworkXNoPath:
                     pass
 
@@ -61,7 +69,9 @@ def choose_seeds(graph, num_players, num_seeds):
                                       / float(sum_of_distances))
 
         # Get the importance in betweenness centrality.
-        # TODO
+        # for node in scored_nodes:
+        #     seen = []
+
 
     sorted_degree_nodes = [node for node, _ in sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)]
     highest_degree_nodes = sorted_degree_nodes[:num_seeds] * NUM_ROUNDS
