@@ -7,6 +7,7 @@ from json import load
 import networkx as nx
 from operator import itemgetter
 from re import split
+from math import factorial
 
 
 NUM_ROUNDS = 50
@@ -51,16 +52,19 @@ def choose_seeds(graph, num_players, num_seeds):
             sum_of_distances = 0
 
             for other_node in scored_nodes:
+                if other_node == node:
+                    continue
+
                 try:
                     key = str(tuple(sorted([inode, int(other_node)])))
-                    if key in paths:
-                        sum_of_distances += paths[key]
-                    else:
+                    if key not in paths:
                         path_length = len(
                             nx.shortest_path(graph, source=node, target=other_node))\
                             - 1
+
                         paths[key] = path_length
-                        sum_of_distances += path_length
+
+                    sum_of_distances += paths[key]
 
                 except nx.NetworkXNoPath:
                     pass
@@ -69,8 +73,22 @@ def choose_seeds(graph, num_players, num_seeds):
                                       / float(sum_of_distances))
 
         # Get the importance in betweenness centrality.
-        # for node in scored_nodes:
-        #     seen = []
+        paths = {}
+        for i in scored_nodes:
+            for j in scored_nodes:
+                if j == i:
+                    continue
+                int_j = int(j)
+                for k in scored_nodes:
+                    if k == i or k == j:
+                        continue
+
+                    key = str(tuple(sorted([int_j, int(k)])))
+                    if key not in paths:
+                        paths[key] = list(nx.all_shortest_paths(graph, j, k))
+
+                    # TODO actually calculate
+
 
 
     sorted_degree_nodes = [node for node, _ in sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)]
