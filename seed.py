@@ -98,7 +98,7 @@ def choose_seeds(graph, num_players, num_seeds):
             scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
     for node, centralities in scored_nodes.iteritems():
-        scored_nodes[node] = sum(centralities) / len(centralities)
+        scored_nodes[node] = sum(centralities) / float(len(centralities))
 
     sorted_centrality_nodes = [node for node, _ in sorted(scored_nodes.items(),
                                                           key=itemgetter(1),
