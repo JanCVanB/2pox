@@ -75,6 +75,8 @@ def choose_seeds(graph, num_players, num_seeds):
         # Get the importance in betweenness centrality.
         paths = {}
         for i in scored_nodes:
+            sum_of_ratios = 0
+
             for j in scored_nodes:
                 if j == i:
                     continue
@@ -87,7 +89,15 @@ def choose_seeds(graph, num_players, num_seeds):
                     if key not in paths:
                         paths[key] = list(nx.all_shortest_paths(graph, j, k))
 
-                    # TODO actually calculate
+                    # TODO check that this works
+                    paths_with_i = 0
+                    for path in paths[key]:
+                        if i in path:
+                            paths_with_i += 1
+
+                    sum_of_ratios += float(paths_with_i) / float(len(paths[key]))
+
+            scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
 
 
