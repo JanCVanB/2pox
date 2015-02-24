@@ -43,61 +43,61 @@ def choose_seeds(graph, num_players, num_seeds):
         scored_nodes[node].append(float(num_neighors)
                                   / float(num_nodes - 1))
 
-    if num_nodes <= 500:
-        # Get the importance in closeness centrality.
-        paths = {}
-        for node in scored_nodes:
-            inode = int(node)
-            sum_of_distances = 0
+    # Get the importance in closeness centrality.
+    paths = {}
+    for node in scored_nodes:
+        inode = int(node)
+        sum_of_distances = 0
 
-            for other_node in scored_nodes:
-                if other_node == node:
+        for other_node in scored_nodes:
+            if other_node == node:
+                continue
+
+            try:
+                key = str(tuple(sorted([inode, int(other_node)])))
+                if key not in paths:
+                    path_length = len(
+                        nx.shortest_path(graph, source=node, target=other_node))\
+                        - 1
+
+                    paths[key] = path_length
+
+                sum_of_distances += paths[key]
+
+            except nx.NetworkXNoPath:
+                pass
+
+        scored_nodes[node].append(float(num_nodes - 1)
+                                  / float(sum_of_distances))
+
+    # Get the importance in betweenness centrality.
+    paths = {}
+    for i in scored_nodes:
+        sum_of_ratios = 0
+
+        for j in scored_nodes:
+            if j == i:
+                continue
+            int_j = int(j)
+            for k in scored_nodes:
+                if k == i or k == j:
                     continue
-
                 try:
-                    key = str(tuple(sorted([inode, int(other_node)])))
+                    key = str(tuple(sorted([int_j, int(k)])))
+                    print key
                     if key not in paths:
-                        path_length = len(
-                            nx.shortest_path(graph, source=node, target=other_node))\
-                            - 1
+                        paths[key] = list(nx.all_shortest_paths(graph, j, k))
 
-                        paths[key] = path_length
+                    paths_with_i = 0
+                    for path in paths[key]:
+                        if i in path:
+                            paths_with_i += 1
 
-                    sum_of_distances += paths[key]
-
+                    sum_of_ratios += float(paths_with_i) / float(len(paths[key]))
                 except nx.NetworkXNoPath:
                     pass
 
-            scored_nodes[node].append(float(num_nodes - 1)
-                                      / float(sum_of_distances))
-
-        # Get the importance in betweenness centrality.
-        paths = {}
-        for i in scored_nodes:
-            sum_of_ratios = 0
-
-            for j in scored_nodes:
-                if j == i:
-                    continue
-                int_j = int(j)
-                for k in scored_nodes:
-                    if k == i or k == j:
-                        continue
-                    try:
-                        key = str(tuple(sorted([int_j, int(k)])))
-                        if key not in paths:
-                            paths[key] = list(nx.all_shortest_paths(graph, j, k))
-
-                        paths_with_i = 0
-                        for path in paths[key]:
-                            if i in path:
-                                paths_with_i += 1
-
-                        sum_of_ratios += float(paths_with_i) / float(len(paths[key]))
-                    except nx.NetworkXNoPath:
-                        pass
-
-            scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
+        scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
     for node, centralities in scored_nodes.iteritems():
         scored_nodes[node] = sum(centralities) / float(len(centralities))
@@ -121,8 +121,8 @@ def read_graph(graph_path):
         graph_data = load(graph_file)
     graph = nx.Graph(graph_data)
     graph_metadata = split('/|\.', graph_path)
-    num_players = int(graph_metadata[1])
-    num_seeds = int(graph_metadata[2])
+    num_players = int(graph_metadata[0][-1])
+    num_seeds = int(graph_metadata[1])
     return graph, num_players, num_seeds
 
 
