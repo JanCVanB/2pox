@@ -83,17 +83,19 @@ def choose_seeds(graph, num_players, num_seeds):
                 for k in scored_nodes:
                     if k == i or k == j:
                         continue
+                    try:
+                        key = str(tuple(sorted([int_j, int(k)])))
+                        if key not in paths:
+                            paths[key] = list(nx.all_shortest_paths(graph, j, k))
 
-                    key = str(tuple(sorted([int_j, int(k)])))
-                    if key not in paths:
-                        paths[key] = list(nx.all_shortest_paths(graph, j, k))
+                        paths_with_i = 0
+                        for path in paths[key]:
+                            if i in path:
+                                paths_with_i += 1
 
-                    paths_with_i = 0
-                    for path in paths[key]:
-                        if i in path:
-                            paths_with_i += 1
-
-                    sum_of_ratios += float(paths_with_i) / float(len(paths[key]))
+                        sum_of_ratios += float(paths_with_i) / float(len(paths[key]))
+                    except nx.NetworkXNoPath:
+                        pass
 
             scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
