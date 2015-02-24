@@ -52,7 +52,7 @@ def choose_seeds(graph, num_players, num_seeds):
 
             for other_node in scored_nodes:
                 try:
-                    key = str(tuple(sorted(inode, int(other_node))))
+                    key = str(tuple(sorted([inode, int(other_node)])))
                     if key in paths:
                         sum_of_distances += paths[key]
                     else:
