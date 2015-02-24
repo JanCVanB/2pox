@@ -7,6 +7,7 @@ import networkx as nx
 from operator import itemgetter
 from re import split
 from math import factorial
+from random import sample
 
 
 NUM_ROUNDS = 50
@@ -27,6 +28,12 @@ def choose_seeds(graph, num_players, num_seeds):
     """
     nodes = graph.nodes()
     num_nodes = len(nodes)
+    samples = None
+    if num_nodes <= 100:
+        samples = nodes
+    else:
+        sample_indicies = sample(xrange(num_nodes), 100)
+        samples = map(str, sample_indicies)
     scored_nodes = {}
 
     for node in nodes:
@@ -46,15 +53,15 @@ def choose_seeds(graph, num_players, num_seeds):
     # Get the importance in closeness centrality.
     paths = {}
     for node in scored_nodes:
-        inode = int(node)
+        int_node = int(node)
         sum_of_distances = 0
 
-        for other_node in scored_nodes:
+        for other_node in samples:
             if other_node == node:
                 continue
 
             try:
-                key = str(tuple(sorted([inode, int(other_node)])))
+                key = str(tuple(sorted([int_node, int(other_node)])))
                 if key not in paths:
                     path_length = len(
                         nx.shortest_path(graph, source=node, target=other_node))\
@@ -75,16 +82,15 @@ def choose_seeds(graph, num_players, num_seeds):
     for i in scored_nodes:
         sum_of_ratios = 0
 
-        for j in scored_nodes:
+        for j in samples:
             if j == i:
                 continue
             int_j = int(j)
-            for k in scored_nodes:
+            for k in samples:
                 if k == i or k == j:
                     continue
                 try:
                     key = str(tuple(sorted([int_j, int(k)])))
-                    print key
                     if key not in paths:
                         paths[key] = list(nx.all_shortest_paths(graph, j, k))
 
