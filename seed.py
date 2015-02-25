@@ -27,21 +27,28 @@ def choose_seeds(graph, num_players, num_seeds):
     :rtype: tuple
     """
     nodes = graph.nodes()
-    num_nodes = len(nodes)
+    scored_nodes = {node: [] for node in nodes}
+    centrality_nodes = nx.degree_centrality(graph)
+    closeness_nodes = nx.closeness_centrality(graph)
+    betweenness_nodes = nx.betweenness_centrality(graph)
+
+    for node, centrality in centrality_nodes.iteritems():
+        scored_nodes[node].append(centrality)
+
+    for node, centrality in closeness_nodes.iteritems():
+        scored_nodes[node].append(centrality)
+
+    for node, centrality in betweenness_nodes.iteritems():
+        scored_nodes[node].append(centrality)
+    '''num_nodes = len(nodes)
     samples = None
     if num_nodes <= 100:
         samples = nodes
     else:
         sample_indicies = sample(xrange(num_nodes), 100)
         samples = map(str, sample_indicies)
-    scored_nodes = {}
 
-    for node in nodes:
-        num_neighors = len(list(nx.all_neighbors(graph, node)))
-
-        # Only need to consider
-        if num_neighors:
-            scored_nodes[node] = []
+    scored_nodes = {node: [] for node in nodes if graph.degree(node)}
 
     # Get the importance in degree, closeness, and betweenness centrality.
     closeness_paths = {}
@@ -52,10 +59,10 @@ def choose_seeds(graph, num_players, num_seeds):
         sum_of_ratios = 0
 
         # Degree centrality calculation.
-        num_neighors = len(list(nx.all_neighbors(graph, node)))
+        num_neighors = len(list(nx.all_neighbors(graph, i)))
 
-        scored_nodes[node].append(float(num_neighors)
-                                  / float(num_nodes - 1))
+        scored_nodes[i].append(float(num_neighors)
+                               / float(num_nodes - 1))
 
         for j in samples:
             if j == i:
@@ -102,7 +109,7 @@ def choose_seeds(graph, num_players, num_seeds):
         else:
             scored_nodes[i].append(float(0))
 
-        scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
+        scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))'''
 
     for node, centralities in scored_nodes.iteritems():
         scored_nodes[node] = sum(centralities) / float(len(centralities))
