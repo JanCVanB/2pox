@@ -97,7 +97,10 @@ def choose_seeds(graph, num_players, num_seeds):
                 except nx.NetworkXNoPath:
                     pass
 
-        scored_nodes[i].append(float(num_nodes - 1) / float(sum_of_distances))
+        if sum_of_distances:
+            scored_nodes[i].append(float(num_nodes - 1) / float(sum_of_distances))
+        else:
+            scored_nodes[i].append(float(0))
 
         scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
@@ -123,8 +126,8 @@ def read_graph(graph_path):
         graph_data = load(graph_file)
     graph = nx.Graph(graph_data)
     graph_metadata = split('/|\.', graph_path)
-    num_players = int(graph_metadata[0][-1])
-    num_seeds = int(graph_metadata[1])
+    num_players = int(graph_metadata[1])
+    num_seeds = int(graph_metadata[2])
     return graph, num_players, num_seeds
 
 
