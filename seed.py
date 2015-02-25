@@ -43,65 +43,61 @@ def choose_seeds(graph, num_players, num_seeds):
         if num_neighors:
             scored_nodes[node] = []
 
-    # Get the importance in degree centrality.
-    for node in scored_nodes:
+    # Get the importance in degree, closeness, and betweenness centrality.
+    closeness_paths = {}
+    betweenness_paths = {}
+    for i in scored_nodes:
+        int_i = int(i)
+        sum_of_distances = 0
+        sum_of_ratios = 0
+
+        # Degree centrality calculation.
         num_neighors = len(list(nx.all_neighbors(graph, node)))
 
         scored_nodes[node].append(float(num_neighors)
                                   / float(num_nodes - 1))
 
-    # Get the importance in closeness centrality.
-    paths = {}
-    for node in scored_nodes:
-        int_node = int(node)
-        sum_of_distances = 0
-
-        for other_node in samples:
-            if other_node == node:
+        for j in samples:
+            if j == i:
                 continue
 
+            int_j = int(j)
+
+            # Closeness centrality calculations.
             try:
-                key = str(tuple(sorted([int_node, int(other_node)])))
-                if key not in paths:
+                key = str(tuple(sorted([int_i, int_j])))
+                if key not in closeness_paths:
                     path_length = len(
-                        nx.shortest_path(graph, source=node, target=other_node))\
-                        - 1
+                        nx.shortest_path(graph, source=i, target=j)) - 1
 
-                    paths[key] = path_length
+                    closeness_paths[key] = path_length
 
-                sum_of_distances += paths[key]
+                sum_of_distances += closeness_paths[key]
 
             except nx.NetworkXNoPath:
                 pass
 
-        scored_nodes[node].append(float(num_nodes - 1)
-                                  / float(sum_of_distances))
-
-    # Get the importance in betweenness centrality.
-    paths = {}
-    for i in scored_nodes:
-        sum_of_ratios = 0
-
-        for j in samples:
-            if j == i:
-                continue
-            int_j = int(j)
             for k in samples:
                 if k == i or k == j:
                     continue
+
+                # Betweenness centrality calculations.
                 try:
                     key = str(tuple(sorted([int_j, int(k)])))
-                    if key not in paths:
-                        paths[key] = list(nx.all_shortest_paths(graph, j, k))
+                    if key not in betweenness_paths:
+                        betweenness_paths[key] = list(nx.all_shortest_paths(graph, j, k))
 
                     paths_with_i = 0
-                    for path in paths[key]:
+                    for path in betweenness_paths[key]:
                         if i in path:
                             paths_with_i += 1
 
-                    sum_of_ratios += float(paths_with_i) / float(len(paths[key]))
+                    sum_of_ratios += float(paths_with_i) / float(len(betweenness_paths[key]))
+
                 except nx.NetworkXNoPath:
                     pass
+
+        scored_nodes[i].append(float(num_nodes - 1) / float(sum_of_distances))
 
         scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
 
