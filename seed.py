@@ -3,10 +3,11 @@
 .. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
 """
 from json import load
-# from networkx import Graph
 import networkx as nx
 from operator import itemgetter
 from re import split
+from math import factorial
+from random import sample
 
 
 NUM_ROUNDS = 50
@@ -27,19 +28,91 @@ def choose_seeds(graph, num_players, num_seeds):
     """
     nodes = graph.nodes()
     num_nodes = len(nodes)
+    samples = None
+    if num_nodes <= 100:
+        samples = nodes
+    else:
+        sample_indicies = sample(xrange(num_nodes), 100)
+        samples = map(str, sample_indicies)
     scored_nodes = {}
 
     for node in nodes:
-        scored_nodes[node] = []
+        num_neighors = len(list(nx.all_neighbors(graph, node)))
 
-    # First get the importance in degree centrality.
-    for node in nodes:
-        scored_nodes[node].append(float(len(list(nx.all_neighbors(graph, node))))
+        # Only need to consider
+        if num_neighors:
+            scored_nodes[node] = []
+
+    # Get the importance in degree, closeness, and betweenness centrality.
+    closeness_paths = {}
+    betweenness_paths = {}
+    for i in scored_nodes:
+        int_i = int(i)
+        sum_of_distances = 0
+        sum_of_ratios = 0
+
+        # Degree centrality calculation.
+        num_neighors = len(list(nx.all_neighbors(graph, node)))
+
+        scored_nodes[node].append(float(num_neighors)
                                   / float(num_nodes - 1))
 
-    sorted_degree_nodes = [node for node, _ in sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)]
-    highest_degree_nodes = sorted_degree_nodes[:num_seeds] * NUM_ROUNDS
-    return tuple(highest_degree_nodes)
+        for j in samples:
+            if j == i:
+                continue
+
+            int_j = int(j)
+
+            # Closeness centrality calculations.
+            try:
+                key = str(tuple(sorted([int_i, int_j])))
+                if key not in closeness_paths:
+                    path_length = len(
+                        nx.shortest_path(graph, source=i, target=j)) - 1
+
+                    closeness_paths[key] = path_length
+
+                sum_of_distances += closeness_paths[key]
+
+            except nx.NetworkXNoPath:
+                pass
+
+            for k in samples:
+                if k == i or k == j:
+                    continue
+
+                # Betweenness centrality calculations.
+                try:
+                    key = str(tuple(sorted([int_j, int(k)])))
+                    if key not in betweenness_paths:
+                        betweenness_paths[key] = list(nx.all_shortest_paths(graph, j, k))
+
+                    paths_with_i = 0
+                    for path in betweenness_paths[key]:
+                        if i in path:
+                            paths_with_i += 1
+
+                    sum_of_ratios += float(paths_with_i) / float(len(betweenness_paths[key]))
+
+                except nx.NetworkXNoPath:
+                    pass
+
+        if sum_of_distances:
+            scored_nodes[i].append(float(num_nodes - 1) / float(sum_of_distances))
+        else:
+            scored_nodes[i].append(float(0))
+
+        scored_nodes[i].append(sum_of_ratios / (factorial(num_nodes - 1) / (factorial(2) * factorial (num_nodes - 3))))
+
+    for node, centralities in scored_nodes.iteritems():
+        scored_nodes[node] = sum(centralities) / float(len(centralities))
+
+    sorted_centrality_nodes = [node for node, _ in sorted(scored_nodes.items(),
+                                                          key=itemgetter(1),
+                                                          reverse=True)]
+
+    centralest_nodes = sorted_centrality_nodes[:num_seeds] * NUM_ROUNDS
+    return tuple(centralest_nodes)
 
 
 def read_graph(graph_path):
