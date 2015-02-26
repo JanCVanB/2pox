@@ -27,6 +27,7 @@ def choose_seeds(graph, num_seeds):
     degree = nx.degree_centrality(graph)
     closeness = nx.closeness_centrality(graph)
     betweenness = nx.betweenness_centrality(graph)
+    # clustering =  nx.clustering(graph)
 
     for node in graph.nodes_iter():
         score[node] = degree[node] + closeness[node] + betweenness[node]
