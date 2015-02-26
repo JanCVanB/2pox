@@ -27,6 +27,8 @@ def choose_seeds(graph, num_seeds, weights=None):
     degree = nx.degree_centrality(graph)
     closeness = nx.closeness_centrality(graph)
     betweenness = nx.betweenness_centrality(graph)
+    # clustering =  nx.clustering(graph)
+    
     if weights is None:
         weights = [1] * 3
     for node in graph.nodes_iter():
