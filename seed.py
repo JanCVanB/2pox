@@ -6,8 +6,6 @@ from json import load
 import networkx as nx
 from operator import itemgetter
 from re import split
-from math import factorial
-from random import sample
 
 
 NUM_ROUNDS = 50
