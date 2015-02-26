@@ -23,19 +23,20 @@ def choose_seeds(graph, num_seeds, weights=None):
     :return: names of seed nodes
     :rtype: tuple
     """
-    score = {}
-    degree = nx.degree_centrality(graph)
-    closeness = nx.closeness_centrality(graph)
-    betweenness = nx.betweenness_centrality(graph)
-    # clustering =  nx.clustering(graph)
-    
+    scores = {}
+    betweenness_centralities = nx.betweenness_centrality(graph)
+    closeness_centralities = nx.closeness_centrality(graph)
+    clusterings = nx.clustering(graph)
+    degree_centralities = nx.degree_centrality(graph)
+
     if weights is None:
-        weights = [1] * 3
+        weights = [1] * 4
     for node in graph.nodes_iter():
-        score[node] = (weights[0] * degree[node] +
-                       weights[1] * closeness[node] +
-                       weights[2] * betweenness[node])
-    sorted_centrality_nodes = [node for node, _ in sorted(score.items(),
+        scores[node] = (weights[0] * betweenness_centralities[node] +
+                        weights[1] * closeness_centralities[node] +
+                        weights[2] * clusterings[node] +
+                        weights[3] * degree_centralities[node])
+    sorted_centrality_nodes = [node for node, _ in sorted(scores.items(),
                                                           key=itemgetter(1),
                                                           reverse=True)]
     centralest_nodes = sorted_centrality_nodes[:num_seeds] * NUM_ROUNDS

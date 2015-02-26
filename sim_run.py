@@ -4,6 +4,7 @@
 """
 from csv import reader
 from json import load
+from os.path import isfile
 
 import seed
 import sim
@@ -15,13 +16,11 @@ NUM_ROUNDS = seed.NUM_ROUNDS
 def read_config(config_path):
     with open(config_path) as config_file:
         config_reader = reader(config_file)
-        run_number = next(config_reader)[1]
-        graph_path = next(config_reader)[1]
-        next(config_reader)  # Skip weights header
+        next(config_reader)  # Skip header
         all_weights = []
         for row in config_reader:
             all_weights.append([int(x) for x in row])
-    return run_number, graph_path, all_weights
+    return all_weights
 
 
 def read_graph(graph_path):
@@ -40,20 +39,22 @@ def read_seeds(seed_path):
     return nested_seeds
 
 
-def write_seeds(run_number, graph_path, weights, weights_string):
-    new_graph_path = graph_path.replace('graphs/', 'simseeds/run{}weights{}-'.format(run_number, weights_string))
-    seed.write_seeds(new_graph_path, seed.run(graph_path, weights))
-    return new_graph_path.replace('.json', '.seeds.txt')
+def write_seeds(graph_path, weights, weights_string):
+    new_graph_path = graph_path.replace('graphs/', 'simseeds/weights{}-'.format(weights_string))
+    seed_path = new_graph_path.replace('.json', '.seeds.txt')
+    if not isfile(seed_path):
+        seed.write_seeds(new_graph_path, seed.run(graph_path, weights))
+    return seed_path
 
 
-def run(config_path):
-    run_number, graph_path, all_weights = read_config(config_path)
+def run(graph_path, weights_path):
+    all_weights = read_config(weights_path)
     all_weights_strings = [','.join(str(w) for w in weights) for weights in all_weights]
     seed_paths = []
     for i, weights in enumerate(all_weights):
         weights_string = all_weights_strings[i]
         print 'calculating seeds for weights={}'.format(weights_string)
-        seed_paths.append(write_seeds(run_number, graph_path, weights, weights_string))
+        seed_paths.append(write_seeds(graph_path, weights, weights_string))
     graph = read_graph(graph_path)
     all_seeds = []
     for i in range(len(all_weights)):
@@ -78,4 +79,8 @@ def run(config_path):
 
 
 if __name__ == '__main__':
-    run('sim_run.config')
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('graph_path', metavar='G', help='path to graph file')
+    args = parser.parse_args()
+    run(args.graph_path, 'sim_run.weights')
