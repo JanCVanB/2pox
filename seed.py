@@ -13,7 +13,7 @@ from random import sample
 NUM_ROUNDS = 50
 
 
-def choose_seeds(graph, num_players, num_seeds):
+def choose_seeds(graph, num_seeds):
     """Return one flat tuple of the seed nodes for each round
 
     If num_seeds is 2 and NUM_ROUNDS is 2, the seed list will look like this:
@@ -21,7 +21,6 @@ def choose_seeds(graph, num_players, num_seeds):
     ['Seed1ForRound1', 'Seed2ForRound1', 'Seed1ForRound2', 'Seed2ForRound2']
 
     :param graph: NetworkX Graph
-    :param int num_players: number of players competing on the graph
     :param int num_seeds: number of seeds to choose each round
     :return: names of seed nodes
     :rtype: tuple
@@ -62,10 +61,9 @@ def read_graph(graph_path):
     with open(graph_path) as graph_file:
         graph_data = load(graph_file)
     graph = nx.Graph(graph_data)
-    graph_metadata = split('/|\.', graph_path)
-    num_players = int(graph_metadata[1])
-    num_seeds = int(graph_metadata[2])
-    return graph, num_players, num_seeds
+    graph_metadata = split('\.', graph_path)
+    num_seeds = int(graph_metadata[1])
+    return graph, num_seeds
 
 
 def write_seeds(graph_path, seeds):
@@ -86,8 +84,8 @@ def run(graph_path):
     :return: names of seed nodes
     :rtype: tuple
     """
-    graph, num_players, num_seeds = read_graph(graph_path)
-    seeds = choose_seeds(graph, num_players, num_seeds)
+    graph, num_seeds = read_graph(graph_path)
+    seeds = choose_seeds(graph, num_seeds)
     return seeds
 
 
