@@ -3,7 +3,6 @@
 .. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
 """
 from json import load
-# from networkx import Graph
 import networkx as nx
 from operator import itemgetter
 from re import split
@@ -12,7 +11,7 @@ from re import split
 NUM_ROUNDS = 50
 
 
-def choose_seeds(graph, num_players, num_seeds):
+def choose_seeds(graph, num_seeds):
     """Return one flat tuple of the seed nodes for each round
 
     If num_seeds is 2 and NUM_ROUNDS is 2, the seed list will look like this:
@@ -20,26 +19,25 @@ def choose_seeds(graph, num_players, num_seeds):
     ['Seed1ForRound1', 'Seed2ForRound1', 'Seed1ForRound2', 'Seed2ForRound2']
 
     :param graph: NetworkX Graph
-    :param int num_players: number of players competing on the graph
     :param int num_seeds: number of seeds to choose each round
     :return: names of seed nodes
     :rtype: tuple
     """
-    nodes = graph.nodes()
-    num_nodes = len(nodes)
-    scored_nodes = {}
+    score = {}
+    degree = nx.degree_centrality(graph)
+    closeness = nx.closeness_centrality(graph)
+    betweenness = nx.betweenness_centrality(graph)
+    # clustering =  nx.clustering(graph)
 
-    for node in nodes:
-        scored_nodes[node] = []
+    for node in graph.nodes_iter():
+        score[node] = degree[node] + closeness[node] + betweenness[node]
 
-    # First get the importance in degree centrality.
-    for node in nodes:
-        scored_nodes[node].append(float(len(list(nx.all_neighbors(graph, node))))
-                                  / float(num_nodes - 1))
+    sorted_centrality_nodes = [node for node, _ in sorted(score.items(),
+                                                          key=itemgetter(1),
+                                                          reverse=True)]
 
-    sorted_degree_nodes = [node for node, _ in sorted(graph.degree_iter(), key=itemgetter(1), reverse=True)]
-    highest_degree_nodes = sorted_degree_nodes[:num_seeds] * NUM_ROUNDS
-    return tuple(highest_degree_nodes)
+    centralest_nodes = sorted_centrality_nodes[:num_seeds] * NUM_ROUNDS
+    return tuple(centralest_nodes)
 
 
 def read_graph(graph_path):
@@ -52,10 +50,9 @@ def read_graph(graph_path):
     with open(graph_path) as graph_file:
         graph_data = load(graph_file)
     graph = nx.Graph(graph_data)
-    graph_metadata = split('/|\.', graph_path)
-    num_players = int(graph_metadata[1])
-    num_seeds = int(graph_metadata[2])
-    return graph, num_players, num_seeds
+    graph_metadata = split('\.', graph_path)
+    num_seeds = int(graph_metadata[1])
+    return graph, num_seeds
 
 
 def write_seeds(graph_path, seeds):
@@ -76,8 +73,8 @@ def run(graph_path):
     :return: names of seed nodes
     :rtype: tuple
     """
-    graph, num_players, num_seeds = read_graph(graph_path)
-    seeds = choose_seeds(graph, num_players, num_seeds)
+    graph, num_seeds = read_graph(graph_path)
+    seeds = choose_seeds(graph, num_seeds)
     return seeds
 
 
