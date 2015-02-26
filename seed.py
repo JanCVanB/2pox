@@ -24,24 +24,15 @@ def choose_seeds(graph, num_seeds):
     :rtype: tuple
     """
     nodes = graph.nodes()
-    scored_nodes = {node: [] for node in nodes}
-    centrality_nodes = nx.degree_centrality(graph)
-    closeness_nodes = nx.closeness_centrality(graph)
-    betweenness_nodes = nx.betweenness_centrality(graph)
+    score = {node: [] for node in nodes}
+    degree = nx.degree_centrality(graph)
+    closeness = nx.closeness_centrality(graph)
+    betweenness = nx.betweenness_centrality(graph)
 
-    for node, centrality in centrality_nodes.iteritems():
-        scored_nodes[node].append(centrality)
+    for node, centralities in score.iteritems():
+        score[node] = degree[node] + closeness[node] + betweenness[node]
 
-    for node, centrality in closeness_nodes.iteritems():
-        scored_nodes[node].append(centrality)
-
-    for node, centrality in betweenness_nodes.iteritems():
-        scored_nodes[node].append(centrality)
-
-    for node, centralities in scored_nodes.iteritems():
-        scored_nodes[node] = sum(centralities) / float(len(centralities))
-
-    sorted_centrality_nodes = [node for node, _ in sorted(scored_nodes.items(),
+    sorted_centrality_nodes = [node for node, _ in sorted(score.items(),
                                                           key=itemgetter(1),
                                                           reverse=True)]
 
