@@ -14,11 +14,12 @@ def make_histogram(bins, rank_list, teams, title):
     plt.figure()
     plt.title(title)
     plt.xlabel('Node Rank by {}'.format(title.split()[-1]))
-    plt.ylabel('Number of the {} Seeds in Each {}-Node Bin'.format(len(rank_list[teams[0]]), bins[1]))
+    plt.ylabel('Number of Seeds in Each {}-Node Bin'.format(bins[1]))
     plt.hist([rank_list[team] for team in teams],
              bins, histtype='bar', label=teams, edgecolor="none",
              color=[cm.jet((i + 0.5) / len(teams), 1) for i in range(len(teams))])
     plt.legend(loc='best')
+    plt.savefig('submissions/{}.png'.format('_'.join(title.split())), frameon=False)
 
 
 def run(results_path):
@@ -55,10 +56,12 @@ def run(results_path):
                 pass
     bins = range(0, num_nodes + 1, num_nodes / 20)
     teams = sorted(results.keys())
-    make_histogram(bins, rank_between, teams, 'Seed Choices by Betweenness')
-    make_histogram(bins, rank_close, teams, 'Seed Choices by Closeness')
-    make_histogram(bins, rank_cluster, teams, 'Seed Choices by Clustering')
-    make_histogram(bins, rank_degree, teams, 'Seed Choices by Degree')
+    graph_id_string = results_path[12:results_path.index('-')]
+    title_prefix = 'Graph {} Seed Choices by '.format(graph_id_string)
+    make_histogram(bins, rank_between, teams, title_prefix + 'Betweenness Centrality')
+    make_histogram(bins, rank_close, teams, title_prefix + 'Closeness Centrality')
+    make_histogram(bins, rank_cluster, teams, title_prefix + 'Clustering')
+    make_histogram(bins, rank_degree, teams, title_prefix + 'Degree Centrality')
     plt.show()
 
 
