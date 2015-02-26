@@ -11,7 +11,7 @@ from re import split
 NUM_ROUNDS = 50
 
 
-def choose_seeds(graph, num_seeds):
+def choose_seeds(graph, num_seeds, weights=None):
     """Return one flat tuple of the seed nodes for each round
 
     If num_seeds is 2 and NUM_ROUNDS is 2, the seed list will look like this:
@@ -27,14 +27,15 @@ def choose_seeds(graph, num_seeds):
     degree = nx.degree_centrality(graph)
     closeness = nx.closeness_centrality(graph)
     betweenness = nx.betweenness_centrality(graph)
-
+    if weights is None:
+        weights = [1] * 3
     for node in graph.nodes_iter():
-        score[node] = degree[node] + closeness[node] + betweenness[node]
-
+        score[node] = (weights[0] * degree[node] +
+                       weights[1] * closeness[node] +
+                       weights[2] * betweenness[node])
     sorted_centrality_nodes = [node for node, _ in sorted(score.items(),
                                                           key=itemgetter(1),
                                                           reverse=True)]
-
     centralest_nodes = sorted_centrality_nodes[:num_seeds] * NUM_ROUNDS
     return tuple(centralest_nodes)
 
@@ -65,7 +66,7 @@ def write_seeds(graph_path, seeds):
         seeds_file.writelines(seed + '\n' for seed in seeds)
 
 
-def run(graph_path):
+def run(graph_path, weights=None):
     """Read the graph at the given path and return the names of the seed nodes
 
     :param graph_path: path to graph file
@@ -73,7 +74,7 @@ def run(graph_path):
     :rtype: tuple
     """
     graph, num_seeds = read_graph(graph_path)
-    seeds = choose_seeds(graph, num_seeds)
+    seeds = choose_seeds(graph, num_seeds, weights)
     return seeds
 
 
