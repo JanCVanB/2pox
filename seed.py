@@ -24,18 +24,16 @@ def choose_seeds(graph, num_seeds, weights=None):
     :rtype: tuple
     """
     scores = {}
-    betweenness_centralities = nx.betweenness_centrality(graph)
+    betweenness_centralities = nx.betweenness_centrality(graph, k=100)
     closeness_centralities = nx.closeness_centrality(graph)
-    clusterings = nx.clustering(graph)
     degree_centralities = nx.degree_centrality(graph)
 
     if weights is None:
-        weights = [1] * 4
+        weights = [1] * 3
     for node in graph.nodes_iter():
         scores[node] = (weights[0] * betweenness_centralities[node] +
                         weights[1] * closeness_centralities[node] +
-                        weights[2] * clusterings[node] +
-                        weights[3] * degree_centralities[node])
+                        weights[2] * degree_centralities[node])
     sorted_centrality_nodes = [node for node, _ in sorted(scores.items(),
                                                           key=itemgetter(1),
                                                           reverse=True)]
