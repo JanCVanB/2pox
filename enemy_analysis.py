@@ -29,28 +29,23 @@ def run(results_path):
     num_nodes = graph.number_of_nodes()
     betweenness_centralities = nx.betweenness_centrality(graph)
     closeness_centralities = nx.closeness_centrality(graph)
-    clusterings = nx.clustering(graph)
     degree_centralities = nx.degree_centrality(graph)
     rank_dict_values = lambda d: sorted(d.keys(), key=lambda x: d[x], reverse=True)
     most_between = rank_dict_values(betweenness_centralities)
     most_close = rank_dict_values(closeness_centralities)
-    most_cluster = rank_dict_values(clusterings)
     most_degree = rank_dict_values(degree_centralities)
     rank_by_most = lambda most_list, seed_list: [most_list.index(x) for x in seed_list]
     rank_between = {}
     rank_close = {}
-    rank_cluster = {}
     rank_degree = {}
     for team, all_seeds in results.iteritems():
         rank_between[team] = []
         rank_close[team] = []
-        rank_cluster[team] = []
         rank_degree[team] = []
         for seeds in all_seeds:
             try:
                 rank_between[team].extend(rank_by_most(most_between, seeds))
                 rank_close[team].extend(rank_by_most(most_close, seeds))
-                rank_cluster[team].extend(rank_by_most(most_cluster, seeds))
                 rank_degree[team].extend(rank_by_most(most_degree, seeds))
             except ValueError:
                 pass
@@ -60,8 +55,11 @@ def run(results_path):
     title_prefix = 'Graph {} Seed Choices by '.format(graph_id_string)
     make_histogram(bins, rank_between, teams, title_prefix + 'Betweenness Centrality')
     make_histogram(bins, rank_close, teams, title_prefix + 'Closeness Centrality')
-    make_histogram(bins, rank_cluster, teams, title_prefix + 'Clustering')
     make_histogram(bins, rank_degree, teams, title_prefix + 'Degree Centrality')
+    bins = range(0, num_nodes / 5 + 1, num_nodes / 100)
+    make_histogram(bins, rank_between, teams, title_prefix + 'Zoomed Betweenness Centrality')
+    make_histogram(bins, rank_close, teams, title_prefix + 'Zoomed Closeness Centrality')
+    make_histogram(bins, rank_degree, teams, title_prefix + 'Zoomed Degree Centrality')
     plt.show()
 
 
