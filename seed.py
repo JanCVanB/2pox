@@ -12,30 +12,39 @@ from random import random
 NUM_ROUNDS = 50
 
 
-def probabilistic_grab(possible_seeds, scores, num_seeds):
+def probabilistic_grab(possible_seeds, scores, num_seeds, closeness_centralities, degree_centralities):
     chosen_seeds = []
     total_score = 0
     for seed in possible_seeds:
         total_score += scores[seed]
+    closeness_values = closeness_centralities.values()
+    degree_values = degree_centralities.values()
 
-    for _ in xrange(NUM_ROUNDS):
+    for round_number in xrange(NUM_ROUNDS):
+        print 'round number', round_number
         round_seeds = []
-        for seed in possible_seeds:
-            if len(round_seeds) >= num_seeds:
-                break
-            if scores[seed] > random():
-                round_seeds.append(seed)
-
         i = 0
         while len(round_seeds) != num_seeds:
-            if possible_seeds[i] not in round_seeds:
-                round_seeds.append(possible_seeds[i])
+            seed = possible_seeds[i % len(possible_seeds)]
             i += 1
-
+            higher_closeness_counts = [value > closeness_centralities[seed] for value in closeness_values]
+            higher_degree_counts = [value > degree_centralities[seed] for value in degree_values]
+            if sum(higher_closeness_counts) / float(len(higher_closeness_counts)) < 0.01:
+                continue
+            if sum(higher_degree_counts) / float(len(higher_degree_counts)) < 0.01:
+                continue
+            if scores[seed] > random() and seed not in round_seeds:
+                round_seeds.append(seed)
         chosen_seeds += round_seeds
 
+    # import matplotlib.pyplot as plt
+    # sorted_closeness_values = sorted(closeness_values, reverse=True)
+    # sorted_degree_values = sorted(degree_values, reverse=True)
+    # plt.hist([[sorted_closeness_values.index(closeness_centralities[seed]) for seed in chosen_seeds],
+    #           [sorted_degree_values.index(degree_centralities[seed]) for seed in chosen_seeds]],
+    #          bins=range(0, len(scores) / 5 + 1, len(scores) / 100))
+    # plt.show()
     return chosen_seeds
-
 
 
 def choose_seeds(graph, num_seeds, weights=None):
@@ -51,23 +60,17 @@ def choose_seeds(graph, num_seeds, weights=None):
     :rtype: tuple
     """
     scores = {}
-    betweenness_centralities = nx.betweenness_centrality(graph, k=100)
     closeness_centralities = nx.closeness_centrality(graph)
+    # In case of graphs with more than 5000 nodes, use betweenness centrality instead
+    # closeness_centralities = nx.betweenness_centrality(graph, k=500)
     degree_centralities = nx.degree_centrality(graph)
-
-    if weights is None:
-        weights = [1] * 3
     for node in graph.nodes_iter():
-        scores[node] = (weights[0] * betweenness_centralities[node] +
-                        weights[1] * closeness_centralities[node] +
-                        weights[2] * degree_centralities[node]) / 3.0
-
+        scores[node] = (closeness_centralities[node] + degree_centralities[node]) / 2.0
     sorted_centrality_nodes = [node for node, _ in sorted(scores.items(),
                                                           key=itemgetter(1),
                                                           reverse=True)]
     centralest_nodes = sorted_centrality_nodes[:len(graph) / 10]
-
-    return tuple(probabilistic_grab(centralest_nodes, scores, num_seeds))
+    return tuple(probabilistic_grab(centralest_nodes, scores, num_seeds, closeness_centralities, degree_centralities))
 
 
 def read_graph(graph_path):
