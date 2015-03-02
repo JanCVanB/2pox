@@ -21,6 +21,8 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
+from __future__ import print_function  # Added for compatibility by Jan Van Bruggen on March 1, 2015
+
 __author__ = "Angela Gong (anjoola@anjoola.com)"
 __editor__ = "Chung Eun Kim (ckkim@caltech.edu)"
 
@@ -205,4 +207,4 @@ def get_result(colors, node_color):
 
 
 if __name__ == '__main__':
-  print USAGE
+  print(USAGE)  # Modified to print function for compatibility by Jan Van Bruggen on March 1, 2015

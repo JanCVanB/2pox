@@ -1,6 +1,7 @@
 """Graph seed characteristics from a competition submission
 
-.. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
+Written by Jan Van Bruggen <jancvanbruggen@gmail.com>
+Last edited on February 27, 2015
 """
 from json import load
 import matplotlib.cm as cm
@@ -49,14 +50,14 @@ def run(results_path):
                 rank_degree[team].extend(rank_by_most(most_degree, seeds))
             except ValueError:
                 pass
-    bins = range(0, num_nodes + 1, num_nodes / 20)
+    bins = range(0, num_nodes + 1, int(num_nodes / 20))
     teams = sorted(results.keys())
     graph_id_string = results_path[12:results_path.index('-')]
     title_prefix = 'Graph {} Seed Choices by '.format(graph_id_string)
     make_histogram(bins, rank_between, teams, title_prefix + 'Betweenness Centrality')
     make_histogram(bins, rank_close, teams, title_prefix + 'Closeness Centrality')
     make_histogram(bins, rank_degree, teams, title_prefix + 'Degree Centrality')
-    bins = range(0, num_nodes / 5 + 1, num_nodes / 100)
+    bins = range(0, int(num_nodes / 5 + 1), int(num_nodes / 100))
     make_histogram(bins, rank_between, teams, title_prefix + 'Zoomed Betweenness Centrality')
     make_histogram(bins, rank_close, teams, title_prefix + 'Zoomed Closeness Centrality')
     make_histogram(bins, rank_degree, teams, title_prefix + 'Zoomed Degree Centrality')

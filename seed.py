@@ -1,7 +1,9 @@
 """Write seed node choices for a given graph file
 
-.. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
+Written by Jan Van Bruggen <jancvanbruggen@gmail.com> and Sean Dolan <stdolan@gmail.com>
+Last edited on March 1, 2015
 """
+from __future__ import print_function
 from json import load
 import networkx as nx
 from operator import itemgetter
@@ -13,15 +15,24 @@ NUM_ROUNDS = 50
 
 
 def probabilistic_grab(possible_seeds, scores, num_seeds, closeness_centralities, degree_centralities):
+    """Return a list of nodes to seed, given their scores and centralities
+
+    :param list possible_seeds: all nodes to consider seeding
+    :param dict scores: score for each node, from which to determine selection probabilities
+    :param int num_seeds: number of nodes to seed
+    :param dict closeness_centralities: closeness centrality for each node
+    :param dict degree_centralities: degree centralities for each node
+    :return: nodes to seed
+    :rtype: list
+    """
     chosen_seeds = []
     total_score = 0
     for seed in possible_seeds:
         total_score += scores[seed]
     closeness_values = closeness_centralities.values()
     degree_values = degree_centralities.values()
-
-    for round_number in xrange(NUM_ROUNDS):
-        print 'round number', round_number
+    for round_number in range(NUM_ROUNDS):
+        print('round number', round_number)
         round_seeds = []
         i = 0
         while len(round_seeds) != num_seeds:
@@ -36,14 +47,6 @@ def probabilistic_grab(possible_seeds, scores, num_seeds, closeness_centralities
             if scores[seed] > random() and seed not in round_seeds:
                 round_seeds.append(seed)
         chosen_seeds += round_seeds
-
-    # import matplotlib.pyplot as plt
-    # sorted_closeness_values = sorted(closeness_values, reverse=True)
-    # sorted_degree_values = sorted(degree_values, reverse=True)
-    # plt.hist([[sorted_closeness_values.index(closeness_centralities[seed]) for seed in chosen_seeds],
-    #           [sorted_degree_values.index(degree_centralities[seed]) for seed in chosen_seeds]],
-    #          bins=range(0, len(scores) / 5 + 1, len(scores) / 100))
-    # plt.show()
     return chosen_seeds
 
 
@@ -56,12 +59,13 @@ def choose_seeds(graph, num_seeds, weights=None):
 
     :param graph: NetworkX Graph
     :param int num_seeds: number of seeds to choose each round
+    :param list weights: weights for each centrality when scoring nodes, ultimately unused
     :return: names of seed nodes
     :rtype: tuple
     """
     scores = {}
     closeness_centralities = nx.closeness_centrality(graph)
-    # In case of graphs with more than 5000 nodes, use betweenness centrality instead
+    # In case of graphs with more than 5000 nodes, use betweenness centrality instead (to run in under 5 minutes)
     # closeness_centralities = nx.betweenness_centrality(graph, k=500)
     degree_centralities = nx.degree_centrality(graph)
     for node in graph.nodes_iter():
@@ -69,7 +73,7 @@ def choose_seeds(graph, num_seeds, weights=None):
     sorted_centrality_nodes = [node for node, _ in sorted(scores.items(),
                                                           key=itemgetter(1),
                                                           reverse=True)]
-    centralest_nodes = sorted_centrality_nodes[:len(graph) / 10]
+    centralest_nodes = sorted_centrality_nodes[:int(len(graph) / 10)]
     return tuple(probabilistic_grab(centralest_nodes, scores, num_seeds, closeness_centralities, degree_centralities))
 
 
@@ -83,7 +87,7 @@ def read_graph(graph_path):
     with open(graph_path) as graph_file:
         graph_data = load(graph_file)
     graph = nx.Graph(graph_data)
-    graph_metadata = split('\.', graph_path)
+    graph_metadata = split('\.', graph_path)  # Assumes no periods in path before graph file name
     num_seeds = int(graph_metadata[1])
     return graph, num_seeds
 

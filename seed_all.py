@@ -1,6 +1,7 @@
 """Write seed node choices for all graph files
 
-.. moduleauthor:: Jan Van Bruggen <jancvanbruggen@gmail.com>
+Written by Jan Van Bruggen <jancvanbruggen@gmail.com>
+Last edited on February 21, 2015
 """
 from __future__ import print_function
 from os import listdir
